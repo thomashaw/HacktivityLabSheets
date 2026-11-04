@@ -125,10 +125,10 @@ sudo tail -f /var/log/snort/alert
 \==VM: On the desktop VM==, \==action: fetch the client list from the web_server over FTP:==
 
 ```bash
-curl ftp://==edit: your username==:tiaspbiqe2r@==edit: web_server IP address==/trade_secrets/clients.csv
+curl --noproxy '*' ftp://==edit: your username==:tiaspbiqe2r@==edit: web_server IP address==/trade_secrets/clients.csv
 ```
 
-Your alert should appear on the ids_monitor VM. Change `clients.csv` to `fake_clients.csv` to test against the other file.
+Your alert should appear on the ids_monitor VM. Change `clients.csv` to `fake_clients.csv` to test against the other file. (The `--noproxy` option stops curl trying to send the request through the lab's web proxy, which doesn't handle FTP.)
 
 > Note: Remember to restart Snort (stop, then start) after you edit your rules.
 
