@@ -279,7 +279,9 @@ Blocking has costs that alerting does not. A false positive in an IDS wastes an 
 
 This lab's IDS can't block anything, so to contain the breach you will use a packet filter on the web_server VM itself. A packet filter, such as Linux's iptables, is a firewall that decides whether to accept or drop each packet based on its headers (source and destination addresses, protocol, ports and connection state), without inspecting its contents the way Snort does.
 
-This time the attacker breaks in over the web server itself (Shellshock against the Apache CGI on port 80), so you cannot simply block the way in: dropping inbound port 80 would take the web server offline, which is the service you are trying to keep running. What you can block is the way the data gets *out*. The attacker's shell connects back from web_server to the attacker's machine (a reverse shell, the command and control channel the data then flows over), so a rule that drops that outbound connection stops the exfiltration while inbound web traffic keeps flowing. This is egress filtering. You already found the attacker's address when you investigated the incident (it is the destination of the stolen data in your capture).
+This time the attacker breaks in over the web server itself (Shellshock against the Apache CGI on port 80), so you cannot simply block the way in: dropping inbound port 80 would take the web server offline, which is the service you are trying to keep running. What you can block is the way the data gets *out*. The attacker's shell connects back from web_server to the attacker's machine on a particular port (a reverse shell, the command and control channel the data then flows over), so a rule that drops the web server's outbound traffic to that one port stops the exfiltration while everything else keeps flowing. This is egress filtering. You already found that port when you investigated the incident: it is the destination port of the stolen data in your capture.
+
+Resist the urge to block *all* traffic to the attacker. The checks that confirm your work (and the SSH you are logged in over) are connections to the same machine, so a blanket block cuts those too. Drop only the one outbound port the reverse shell uses.
 
 \==VM: On the web_server VM== (over SSH, as above), these commands show and change the rules:
 
@@ -288,18 +290,18 @@ sudo iptables -L -n -v --line-numbers
 ```
 
 ```bash
-sudo iptables -A OUTPUT -d ==edit: attacker IP address== -j DROP
+sudo iptables -A OUTPUT -p tcp --dport ==edit: the port the data left on== -j DROP
 ```
 
 ```bash
 sudo iptables -D OUTPUT ==edit: rule number==
 ```
 
-The first lists the current rules with their numbers, the second adds a rule dropping traffic leaving the VM towards a destination (here the attacker, so the reverse shell cannot connect back), and the third deletes a rule by its number. Inbound rules go in the `INPUT` chain instead; you can match a port with `--dport`, a source with `-s` and a destination with `-d`.
+The first lists the current rules with their numbers, the second adds a rule dropping outbound TCP traffic to that destination port (so the reverse shell cannot connect back), and the third deletes a rule by its number. Inbound rules go in the `INPUT` chain instead; you can match a source with `-s` and a destination address with `-d`.
 
-> Warning: Leave inbound port 80 open (that is the web server) and keep SSH (port 22) reachable, since Hackerbot uses SSH to check your work. Block only the outbound path to the attacker. If you lock yourself out, restarting the web_server VM clears rules that you haven't saved.
+> Warning: Leave inbound port 80 open (that is the web server) and do not block all traffic to the attacker, since Hackerbot reaches web_server from that same machine to check your work. Block only the one outbound reverse-shell port. If you lock yourself out, restarting the web_server VM clears rules that you haven't saved.
 
-> Note: An outbound block to the attacker also stops the earlier attacks' reverse shells. To repeat any of them, delete your rule first.
+> Note: Your outbound rule also stops the earlier attacks' reverse shells on that port. To repeat any of them, delete your rule first.
 
 #### Hackerbot Attack #9 {#hackerbot-attack-9}
 
