@@ -246,7 +246,7 @@ You can skip the bot to these, by saying **goto 5** (and so on).
 
 Each of these is a question only: Hackerbot asks it as soon as you get there, so investigate your capture and ==action: answer '*YOURANSWER*'== (say 'ready' to hear the question again).
 
-> Hint: For the service the attacker exploited, look at the connections to the web_server VM from just before the data left, and the port they used.
+> Hint: For how the attacker got in, look at the web traffic to the web_server VM on port 80 just before the data left: the request carries an odd `() { :;};` string in its headers. Your IDS also flagged it, as an `OS-OTHER Bash CGI environment variable injection attempt` alert. That is Shellshock (CVE-2014-6271) against the Apache CGI.
 
 Don't forget to ==action: save and submit any flags!==
 
@@ -279,6 +279,8 @@ Blocking has costs that alerting does not. A false positive in an IDS wastes an 
 
 This lab's IDS can't block anything, so to contain the breach you will use a packet filter on the web_server VM itself. A packet filter, such as Linux's iptables, is a firewall that decides whether to accept or drop each packet based on its headers (source and destination addresses, protocol, ports and connection state), without inspecting its contents the way Snort does.
 
+This time the attacker breaks in over the web server itself (Shellshock against the Apache CGI on port 80), so you cannot simply block the way in: dropping inbound port 80 would take the web server offline, which is the service you are trying to keep running. What you can block is the way the data gets *out*. The attacker's shell connects back from web_server to the attacker's machine (a reverse shell, the command and control channel the data then flows over), so a rule that drops that outbound connection stops the exfiltration while inbound web traffic keeps flowing. This is egress filtering. You already found the attacker's address when you investigated the incident (it is the destination of the stolen data in your capture).
+
 \==VM: On the web_server VM== (over SSH, as above), these commands show and change the rules:
 
 ```bash
@@ -286,24 +288,24 @@ sudo iptables -L -n -v --line-numbers
 ```
 
 ```bash
-sudo iptables -A INPUT -p tcp --dport ==edit: port== -j DROP
+sudo iptables -A OUTPUT -d ==edit: attacker IP address== -j DROP
 ```
 
 ```bash
-sudo iptables -D INPUT ==edit: rule number==
+sudo iptables -D OUTPUT ==edit: rule number==
 ```
 
-The first lists the current rules with their numbers, the second adds a rule dropping incoming TCP traffic to a port, and the third deletes a rule by its number. Rules for traffic leaving the VM go in the `OUTPUT` chain, where `--dport` is the port being connected to, and `-d` and `-s` match the destination and source addresses.
+The first lists the current rules with their numbers, the second adds a rule dropping traffic leaving the VM towards a destination (here the attacker, so the reverse shell cannot connect back), and the third deletes a rule by its number. Inbound rules go in the `INPUT` chain instead; you can match a port with `--dport`, a source with `-s` and a destination with `-d`.
 
-> Warning: Keep SSH (port 22) and the website (port 80) open: Hackerbot uses SSH to check your work, and containment shouldn't take the business offline. If you lock yourself out, restarting the web_server VM clears rules that you haven't saved.
+> Warning: Leave inbound port 80 open (that is the web server) and keep SSH (port 22) reachable, since Hackerbot uses SSH to check your work. Block only the outbound path to the attacker. If you lock yourself out, restarting the web_server VM clears rules that you haven't saved.
 
-> Note: Your rules also block the earlier attacks. To repeat any of them, delete your rules first.
+> Note: An outbound block to the attacker also stops the earlier attacks' reverse shells. To repeat any of them, delete your rule first.
 
 #### Hackerbot Attack #9 {#hackerbot-attack-9}
 
 You can skip the bot to here, by saying **goto 9**.
 
-> Hackerbot: Use a packet filter on the web_server VM to stop Hackerbot getting data out, without taking the website offline. Hackerbot attacks again, then checks that the website still works.
+> Hackerbot: Use a packet filter on the web_server VM to block the attacker's outbound reverse shell, so no data can leave, while the web server keeps serving on port 80. Hackerbot attacks again, then checks whether the data got out and whether the web server still answers.
 
 Do any necessary preparation, then when you are ready for the bot to complete the attack, ==action: say 'ready'==. If your filter works, Hackerbot asks one more question, about intrusion prevention: ==action: answer '*YOURANSWER*'==.
 
