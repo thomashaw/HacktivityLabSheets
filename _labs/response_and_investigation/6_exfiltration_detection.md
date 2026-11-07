@@ -64,12 +64,16 @@ sudo vi /etc/snort/snort.conf
 
 > Note: Editing using vi involves pressing "i" to insert/edit text, then *Esc*, ":wq" to write changes and quit.
 
-\==action: Check for the following lines==, and add any that are missing to the end of the file:
+> Tip: To find a line in vi, press `/`, type part of the line (for example `log_tcpdump`) and press Enter; press `n` to jump to the next match. This is quicker than scrolling.
+
+\==action: Check for the following lines:==
 
 ```
 output alert_fast
 output log_tcpdump: tcpdump.log
 ```
+
+Some of these may already be in the file but commented out: a line that starts with a `#` is a comment, so Snort ignores it. If you find one commented out, remove the leading `#` to enable it. Add any that are missing entirely to the end of the file.
 
 ```bash
 sudo vi /etc/snort/snort.debian.conf
