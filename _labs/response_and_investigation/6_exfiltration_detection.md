@@ -116,26 +116,6 @@ There is a variety of DLP solutions available. Enterprise solutions typically co
 
 ### Snort exfiltration detection (data in motion) {#snort-exfiltration-detection-data-in-motion}
 
-#### Testing your rules {#testing-your-rules}
-
-Each Hackerbot attack takes a few minutes, so it is worth testing your rules yourself first. The web_server VM runs an FTP server, so you can fetch a copy of a file from it in the clear and check that Snort raises your alert.
-
-\==VM: On the ids_monitor VM==, \==action: watch the alerts as they arrive:==
-
-```bash
-sudo tail -f /var/log/snort/alert
-```
-
-\==VM: On the desktop VM==, \==action: fetch the client list from the web_server over FTP:==
-
-```bash
-curl --noproxy '*' ftp://==edit: your username==:tiaspbiqe2r@==edit: web_server IP address==/trade_secrets/clients.csv
-```
-
-Your alert should appear on the ids_monitor VM. Change `clients.csv` to `fake_clients.csv` to test against the other file. (The `--noproxy` option stops curl trying to send the request through the lab's web proxy, which doesn't handle FTP.)
-
-> Note: Remember to restart Snort (stop, then start) after you edit your rules.
-
 #### Text-based exfiltration detection {#text-based-exfiltration-detection}
 
 > Tip: You can include your sensitive data directly in a Snort rule. This is closely related to the [IDS rules lab](https://cliffe.github.io/HacktivityLabSheets/labs/response_and_investigation/5-ids-rules/), which will be a helpful resource.
@@ -157,6 +137,28 @@ Next to the real client list on the web_server there is a second file, `fake_cli
 Snort rules can also contain hashes to match against, so that the rule doesn't contain any plain text of your document at all.
 
 Using newer versions of Snort (2.9.7 onwards) it is possible to write Snort rules that detect the transfer of the contents of your files based on hashes, using the `protected_content` keyword.
+
+#### Testing a rule yourself {#testing-your-rules}
+
+Each Hackerbot attack takes a few minutes, so once you have written a rule (using one of the techniques above) it is worth checking it yourself first, rather than waiting for Hackerbot each time. This only works once you have a matching rule loaded: with no rule in `local.rules`, nothing will fire, so use this after you have written a rule for the attack you are working on.
+
+The method is: add your rule to `/etc/snort/rules/local.rules` on the ids_monitor VM and restart Snort (stop, then start), then pull a copy of a file from the web_server's FTP server in the clear and watch for your alert.
+
+\==VM: On the ids_monitor VM==, \==action: watch the alerts as they arrive:==
+
+```bash
+sudo tail -f /var/log/snort/alert
+```
+
+\==VM: On the desktop VM==, \==action: fetch the client list from the web_server over FTP:==
+
+```bash
+curl --noproxy '*' ftp://==edit: your username==:tiaspbiqe2r@==edit: web_server IP address==/trade_secrets/clients.csv
+```
+
+If your rule matches the file, your alert appears in the tail on the ids_monitor VM. Change `clients.csv` to `fake_clients.csv` to test against the other file. (The `--noproxy` option stops curl from sending the request through the lab's web proxy, which doesn't handle FTP.)
+
+> Note: Remember to restart Snort (stop, then start) each time you edit your rules, or Snort won't pick up the change.
 
 #### Hackerbot Attack #1 {#hackerbot-attack-1}
 
