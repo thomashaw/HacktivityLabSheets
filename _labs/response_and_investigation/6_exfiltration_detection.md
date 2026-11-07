@@ -118,37 +118,15 @@ There is a variety of DLP solutions available. Enterprise solutions typically co
 
 You will write Snort rules on the ids_monitor VM to detect the client list leaving the network. Hackerbot runs the attacks one at a time: for each, it tells you in the chat which file to protect and the exact alert message your rule must use, you prepare your rule, and you say 'ready' for it to send the data. You will build the rule up in three stages, each with its own Hackerbot attack: first matching the text directly, then matching the format with a regular expression, then matching a hash of the content. Add your rules to `/etc/snort/rules/local.rules` and restart Snort after each change.
 
-#### Testing a rule yourself {#testing-your-rules}
-
-Each Hackerbot attack takes a few minutes, so once you have written a rule it is worth checking it yourself first, rather than waiting for Hackerbot each time. This only works once you have a matching rule loaded: with no rule in `local.rules`, nothing will fire, so use it after you have written the rule for the attack you are on.
-
-The method is: add your rule to `/etc/snort/rules/local.rules` on the ids_monitor VM and restart Snort (stop, then start), then pull a copy of a file from the web_server's FTP server in the clear and watch for your alert.
-
-\==VM: On the ids_monitor VM==, \==action: watch the alerts as they arrive:==
-
-```bash
-sudo tail -f /var/log/snort/alert
-```
-
-\==VM: On the desktop VM==, \==action: fetch the client list from the web_server over FTP:==
-
-```bash
-curl --noproxy '*' ftp://==edit: your username==:tiaspbiqe2r@==edit: web_server IP address==/trade_secrets/clients.csv
-```
-
-If your rule matches the file, your alert appears in the tail on the ids_monitor VM. Change `clients.csv` to `fake_clients.csv` to test against the other file. (The `--noproxy` option stops curl from sending the request through the lab's web proxy, which doesn't handle FTP.)
-
-> Note: Remember to restart Snort (stop, then start) each time you edit your rules, or Snort won't pick up the change.
-
 #### Hackerbot Attack #1: text-based matching {#hackerbot-attack-1}
 
 You can skip the bot to here, by saying **goto 1**.
 
-The simplest way to catch the file is to put a piece of the sensitive text straight into the rule and match it with the `content` keyword. This is closely related to the [IDS rules lab](https://cliffe.github.io/HacktivityLabSheets/labs/response_and_investigation/5-ids-rules/), which is a helpful resource. The attacker won't use a standard port, so match traffic on any port (`any any -> any any`); it is fine to monitor all ports, so long as your rule detects transfer of the file. Adding `flow:established;` limits the rule to established TCP connections, which cuts out some noise.
+This is closely related to the [IDS rules lab](https://cliffe.github.io/HacktivityLabSheets/labs/response_and_investigation/5-ids-rules/), which is a helpful resource.
 
 > Hackerbot: Write one or more Snort rules that detect the sensitive client list being transferred unencrypted, using text-based matching. Hackerbot gives you the file to protect and the alert message to use in the chat.
 
-\==action: Prepare your rule and test it== (see "Testing a rule yourself" above), then when you are ready for the bot to complete the attack, ==action: say 'ready'==.
+\==action: Prepare your rule==, then when you are ready for the bot to complete the attack, ==action: say 'ready'==.
 
 > Note: Add your rule to `/etc/snort/rules/local.rules` on the ids_monitor VM, using the exact alert message Hackerbot gave you in the chat. Restart Snort (stop, then start) after editing so it loads your rule before you say 'ready'.
 
@@ -166,7 +144,7 @@ Next to the real client list on the web_server there is a second file, `fake_cli
 
 > Hackerbot: Update your rule to use a regular expression, so that it matches the data without containing any of it. Hackerbot will steal either the real client list or the fake one, so your rule needs to match both.
 
-\==action: Prepare your rule and test it== against both `clients.csv` and `fake_clients.csv`, then ==action: say 'ready'==.
+\==action: Prepare your rule== so it matches both `clients.csv` and `fake_clients.csv`, then ==action: say 'ready'==.
 
 There is a quiz to complete: once Hackerbot asks you the question, you can ==action: answer '*YOURANSWER*'==.
 
@@ -186,11 +164,11 @@ Don't forget to ==action: save and submit any flags!==
 
 You can skip the bot to here, by saying **goto 3**.
 
-You can go one step further and keep no plaintext of the data in the rule at all, by matching a hash of the content instead. Newer versions of Snort (2.9.7 onwards) support this with the `protected_content` keyword.
+You can go one step further and keep no plaintext of the data in the rule at all, by matching a hash of the content instead, using the `protected_content` keyword.
 
 > Hackerbot: Update your rule again to use hash-based matching, so that the rule holds no sensitive data. Hackerbot gives you the file and the alert message in the chat.
 
-\==action: Prepare your rule and test it==, then ==action: say 'ready'==.
+\==action: Prepare your rule==, then ==action: say 'ready'==.
 
 > Hint: You don't know where in the packet the protected content will be, so you can first have a `content` match on something you know will come first (such as the start of the first record), and specify a `distance` between that and the `protected_content`. A name is fine as an anchor, but don't include card numbers, national insurance numbers, phone numbers or email addresses in your rule.
 
