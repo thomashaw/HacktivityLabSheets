@@ -73,7 +73,7 @@ output alert_fast
 output log_tcpdump: tcpdump.log
 ```
 
-Some of these may already be in the file but commented out: a line that starts with a `#` is a comment, so Snort ignores it. If you find one commented out, remove the leading `#` to enable it. Add any that are missing entirely to the end of the file.
+You may find one of these is commented out by default: the line starts with a `#`, which makes Snort ignore it. If so, remove the leading `#` to enable it. Add any that are missing entirely to the end of the file.
 
 ```bash
 sudo vi /etc/snort/snort.debian.conf
@@ -168,7 +168,7 @@ You can skip the bot to here, by saying **goto 1**.
 
 Do any necessary preparation, then when you are ready for the bot to complete the attack, ==action: say 'ready'==.
 
-> Note: Add your rule to `/etc/snort/rules/local.rules` on the ids_monitor VM, using the exact alert message Hackerbot gave you in the chat.
+> Note: Add your rule to `/etc/snort/rules/local.rules` on the ids_monitor VM, using the exact alert message Hackerbot gave you in the chat. Restart Snort (stop, then start) after editing so it loads your rule before you say 'ready'.
 
 Don't forget to ==action: save and submit any flags!==
 
@@ -251,8 +251,6 @@ You can skip the bot to these, by saying **goto 5** (and so on).
 > Hackerbot: Hackerbot asks you a series of questions about the incident: what was taken, how the attacker got in, which ATT&CK technique describes the exfiltration, and how quickly the breach must be reported.
 
 Each of these is a question only: Hackerbot asks it as soon as you get there, so investigate your capture and ==action: answer '*YOURANSWER*'== (say 'ready' to hear the question again).
-
-> Hint: For how the attacker got in, look at the web traffic to the web_server VM on port 80 just before the data left: the request carries an odd `() { :;};` string in its headers. Your IDS also flagged it, as an `OS-OTHER Bash CGI environment variable injection attempt` alert. That is Shellshock (CVE-2014-6271) against the Apache CGI.
 
 Don't forget to ==action: save and submit any flags!==
 
