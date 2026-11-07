@@ -138,7 +138,7 @@ You can skip the bot to here, by saying **goto 2**.
 
 Putting the sensitive data straight into a rule has a problem: anyone who can read your IDS configuration can then read the data. Instead, you can match the *format* of the records (what a card number or a national insurance number looks like) with a regular expression, so the rule contains none of the actual values.
 
-Next to the real client list on the web_server there is a second file, `fake_clients.csv`, filled with made-up records in the same format. A fake record like this is a *honeytoken* (or canary record): data that nobody has any legitimate reason to touch, so any sign of it on the network, or anywhere else, indicates a leak. Commercial DLP and deception products plant honeytokens for the same reason. A rule that matches the format of the records catches the real data and the honeytoken alike.
+Next to the real client list on the web_server there is a second file, `fake_clients.csv`, with made-up records in the same format. Hackerbot will steal either the real file or the fake one at random, so your rule needs to match the *format* of the records (what a card number or national insurance number looks like) rather than any specific value, which catches both.
 
 > Tip: Consider the `pcre` keyword for the regular expression.
 
@@ -239,10 +239,10 @@ Snort can run inline as an IPS (for example, between two network interfaces), an
 | `reject` | Block the packet, log it, and send a TCP reset or ICMP unreachable to the sender |
 | `sdrop` | Block the packet without logging it |
 
-For example, the following rule, running inline, would stop any packet containing a particular honeytoken value from leaving:
+For example, the following rule, running inline, would stop any packet containing a specific sensitive value from leaving:
 
 ```
-drop tcp $HOME_NET any -> any any (msg:"Honeytoken leaving the network"; content:"QQ000000A"; sid:1000100; rev:1;)
+drop tcp $HOME_NET any -> any any (msg:"Sensitive record leaving the network"; content:"QQ000000A"; sid:1000100; rev:1;)
 ```
 
 Blocking has costs that alerting does not. A false positive in an IDS wastes an analyst's time; a false positive in an IPS blocks legitimate traffic, potentially taking a business service offline. An inline device also adds latency, and has to be designed to either let traffic through (fail open) or block everything (fail closed) if it stops working. For these reasons organisations often run new rules in alert-only mode first, and only switch them to `drop` once they are confident the rules don't match legitimate traffic.
