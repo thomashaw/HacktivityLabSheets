@@ -116,31 +116,11 @@ There is a variety of DLP solutions available. Enterprise solutions typically co
 
 ### Snort exfiltration detection (data in motion) {#snort-exfiltration-detection-data-in-motion}
 
-#### Text-based exfiltration detection {#text-based-exfiltration-detection}
-
-> Tip: You can include your sensitive data directly in a Snort rule. This is closely related to the [IDS rules lab](https://cliffe.github.io/HacktivityLabSheets/labs/response_and_investigation/5-ids-rules/), which will be a helpful resource.
-
-The attacker won't use a standard port, so match traffic on any port (`any any -> any any`); it is fine to monitor all ports, so long as your rule(s) detect transfer of the file. Adding `flow:established;` limits the rule to established TCP connections, which cuts out some noise.
-
-#### Regular expression-based exfiltration detection {#regular-expression-based-exfiltration-detection}
-
-Assuming the data you are protecting is sensitive, you likely don't want your Snort rules to contain direct copies of all your most sensitive data: anyone who can read your IDS configuration could read the data. For this reason, Snort rules can contain regular expressions to match against.
-
-It is possible to write Snort rules that detect the transfer of the contents of your files based on the format of the data (what a card number or a national insurance number looks like), so that the Snort rule contains none of the sensitive values themselves.
-
-> Tip: Consider using the `pcre` keyword in your rule.
-
-Next to the real client list on the web_server there is a second file, `fake_clients.csv`, filled with made-up records in the same format. A fake record like this is a *honeytoken* (or canary record): data that nobody has any legitimate reason to touch, so any sign of it on the network, or anywhere else, indicates a leak. Commercial DLP and deception products plant honeytokens for the same reason. A rule that matches the format of the records catches the real data and the honeytoken alike.
-
-#### Hash-based exfiltration detection {#hash-based-exfiltration-detection}
-
-Snort rules can also contain hashes to match against, so that the rule doesn't contain any plain text of your document at all.
-
-Using newer versions of Snort (2.9.7 onwards) it is possible to write Snort rules that detect the transfer of the contents of your files based on hashes, using the `protected_content` keyword.
+You will write Snort rules on the ids_monitor VM to detect the client list leaving the network. Hackerbot runs the attacks one at a time: for each, it tells you in the chat which file to protect and the exact alert message your rule must use, you prepare your rule, and you say 'ready' for it to send the data. You will build the rule up in three stages, each with its own Hackerbot attack: first matching the text directly, then matching the format with a regular expression, then matching a hash of the content. Add your rules to `/etc/snort/rules/local.rules` and restart Snort after each change.
 
 #### Testing a rule yourself {#testing-your-rules}
 
-Each Hackerbot attack takes a few minutes, so once you have written a rule (using one of the techniques above) it is worth checking it yourself first, rather than waiting for Hackerbot each time. This only works once you have a matching rule loaded: with no rule in `local.rules`, nothing will fire, so use this after you have written a rule for the attack you are working on.
+Each Hackerbot attack takes a few minutes, so once you have written a rule it is worth checking it yourself first, rather than waiting for Hackerbot each time. This only works once you have a matching rule loaded: with no rule in `local.rules`, nothing will fire, so use it after you have written the rule for the attack you are on.
 
 The method is: add your rule to `/etc/snort/rules/local.rules` on the ids_monitor VM and restart Snort (stop, then start), then pull a copy of a file from the web_server's FTP server in the clear and watch for your alert.
 
@@ -160,25 +140,33 @@ If your rule matches the file, your alert appears in the tail on the ids_monitor
 
 > Note: Remember to restart Snort (stop, then start) each time you edit your rules, or Snort won't pick up the change.
 
-#### Hackerbot Attack #1 {#hackerbot-attack-1}
+#### Hackerbot Attack #1: text-based matching {#hackerbot-attack-1}
 
 You can skip the bot to here, by saying **goto 1**.
 
+The simplest way to catch the file is to put a piece of the sensitive text straight into the rule and match it with the `content` keyword. This is closely related to the [IDS rules lab](https://cliffe.github.io/HacktivityLabSheets/labs/response_and_investigation/5-ids-rules/), which is a helpful resource. The attacker won't use a standard port, so match traffic on any port (`any any -> any any`); it is fine to monitor all ports, so long as your rule detects transfer of the file. Adding `flow:established;` limits the rule to established TCP connections, which cuts out some noise.
+
 > Hackerbot: Write one or more Snort rules that detect the sensitive client list being transferred unencrypted, using text-based matching. Hackerbot gives you the file to protect and the alert message to use in the chat.
 
-Do any necessary preparation, then when you are ready for the bot to complete the attack, ==action: say 'ready'==.
+\==action: Prepare your rule and test it== (see "Testing a rule yourself" above), then when you are ready for the bot to complete the attack, ==action: say 'ready'==.
 
 > Note: Add your rule to `/etc/snort/rules/local.rules` on the ids_monitor VM, using the exact alert message Hackerbot gave you in the chat. Restart Snort (stop, then start) after editing so it loads your rule before you say 'ready'.
 
 Don't forget to ==action: save and submit any flags!==
 
-#### Hackerbot Attack #2 {#hackerbot-attack-2}
+#### Hackerbot Attack #2: regular expression matching {#hackerbot-attack-2}
 
 You can skip the bot to here, by saying **goto 2**.
 
+Putting the sensitive data straight into a rule has a problem: anyone who can read your IDS configuration can then read the data. Instead, you can match the *format* of the records (what a card number or a national insurance number looks like) with a regular expression, so the rule contains none of the actual values.
+
+Next to the real client list on the web_server there is a second file, `fake_clients.csv`, filled with made-up records in the same format. A fake record like this is a *honeytoken* (or canary record): data that nobody has any legitimate reason to touch, so any sign of it on the network, or anywhere else, indicates a leak. Commercial DLP and deception products plant honeytokens for the same reason. A rule that matches the format of the records catches the real data and the honeytoken alike.
+
+> Tip: Consider the `pcre` keyword for the regular expression.
+
 > Hackerbot: Update your rule to use a regular expression, so that it matches the data without containing any of it. Hackerbot will steal either the real client list or the fake one, so your rule needs to match both.
 
-Do any necessary preparation, then when you are ready for the bot to complete the attack, ==action: say 'ready'==.
+\==action: Prepare your rule and test it== against both `clients.csv` and `fake_clients.csv`, then ==action: say 'ready'==.
 
 There is a quiz to complete: once Hackerbot asks you the question, you can ==action: answer '*YOURANSWER*'==.
 
@@ -194,13 +182,15 @@ ssh ==edit: your username==@==edit: web_server IP address==
 
 Don't forget to ==action: save and submit any flags!==
 
-#### Hackerbot Attack #3 {#hackerbot-attack-3}
+#### Hackerbot Attack #3: hash-based matching {#hackerbot-attack-3}
 
 You can skip the bot to here, by saying **goto 3**.
 
+You can go one step further and keep no plaintext of the data in the rule at all, by matching a hash of the content instead. Newer versions of Snort (2.9.7 onwards) support this with the `protected_content` keyword.
+
 > Hackerbot: Update your rule again to use hash-based matching, so that the rule holds no sensitive data. Hackerbot gives you the file and the alert message in the chat.
 
-Do any necessary preparation, then when you are ready for the bot to complete the attack, ==action: say 'ready'==.
+\==action: Prepare your rule and test it==, then ==action: say 'ready'==.
 
 > Hint: You don't know where in the packet the protected content will be, so you can first have a `content` match on something you know will come first (such as the start of the first record), and specify a `distance` between that and the `protected_content`. A name is fine as an anchor, but don't include card numbers, national insurance numbers, phone numbers or email addresses in your rule.
 
