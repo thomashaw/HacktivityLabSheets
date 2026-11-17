@@ -54,6 +54,38 @@ Split your team into two pairs. The first pair operate the Pineapple for Parts 1
 
 Your team submits **one** document containing your answers to the numbered **Submission Questions** in this sheet, with screenshots as evidence where asked. Other questions in this sheet are for discussion and your own understanding, and are not submitted. The marking scheme is at the end of the sheet.
 
+### Where to sit {#where-to-sit}
+
+All four teams attack at the same time, in one room, on one shared radio band. A Windows PC joins whichever copy of a network it hears loudest, so your victim must hear your Pineapple far more loudly than the café's router or any other team's Pineapple. Distance is what makes that happen. The café router sits in the middle of the room and each team takes a corner:
+
+```text
+ [staff]                          [staff]       front
+ A victim    .       .     B victim     row 1   (Pineapple on each victim's desk)
+ A attacker  .       .     B attacker   row 2
+   .         .       .        .
+   .      [ café router ]     .         middle
+   .         .       .        .
+ C attacker  .       .     D attacker   row 7
+ C victim    .       .     D victim     row 8   back
+```
+
+* The victim PC takes the corner seat, and the Pineapple sits on the victim's desk, next to the Wi-Fi dongle.
+* The attacker PC is the one next to it, towards the middle of the room. The rest of the team sit at the PCs beside them.
+* Your tutor will tell you which corner is yours, and may give you a channel for your Pineapple's Open AP so that the teams furthest apart share one.
+
+If your victim sits near the router, or near another team, the attack can fail even when every setting is right, so stay in your corner.
+
+### Sharing the airwaves {#sharing-the-airwaves}
+
+Every Pineapple in the room shares the same channels, so one team's careless settings can stop everybody else's attack from working. Throughout the lab:
+
+* **Do** set your Pineapple's filters to "Allow" with only your own victim's address and only `CSL-Cafe` before you broadcast anything (Part 1 shows how).
+* **Don't** use "Deauthenticate All", or deauthenticate anything at all; your tutor demonstrates deauthentication once, at the start.
+* **Don't** add any network other than `CSL-Cafe` to the SSID pool, and leave "Capture SSIDs to Pool" (or "Auto-collect") turned off. Collecting and broadcasting the names that nearby phones ask for is the old Karma-style approach, and here it would advertise real networks to people outside the lab.
+* **Don't** set the beacon or response intervals to "Aggressive". Leave them at "Normal": aggressive beaconing fills the channel and slows down every team, including yours.
+* **Don't** move your Pineapple away from your victim, swap Pineapples with another team, or change the café router's settings.
+* **Don't** leave anything running when you finish: follow [Clean up](#clean-up) so the next class starts with a clean Pineapple.
+
 ### The lab network {#the-lab-network}
 
 The CSL Café network has been set up for you as follows:
@@ -92,7 +124,7 @@ What an attacker gains from being in the middle has changed too. Almost all web 
 
 ## Getting started {#getting-started}
 
-Decide which pair will start as the attackers and which as the victim, and sit at two neighbouring PCs. Keep the Pineapple on the desk next to the victim PC, as close as possible to the victim's Wi-Fi dongle; this is your strongest defence against accidentally attracting another team's victim, and theirs against attracting yours.
+Decide which pair will start as the attackers and which as the victim, and sit in your team's corner as shown in [Where to sit](#where-to-sit): the victim on the corner seat, the attacker next to them. Put the Pineapple on the victim's desk, as close as possible to the Wi-Fi dongle; this is your strongest defence against accidentally attracting another team's victim, and theirs against attracting yours.
 
 ### Victim PC {#victim-pc}
 
@@ -147,7 +179,17 @@ The first stage of any wireless assessment is reconnaissance: finding out which 
 
 Now limit what the Pineapple will interact with. Professional testers are always bound by a **scope** agreed with the client, and the Pineapple's filters are how you enforce yours.
 
-==action: Open PineAP's filtering settings and set the client filter to "Allow" mode, containing only your victim's physical address==. ==action: Set the SSID filter to "Allow" mode, containing only `CSL-Cafe`==. With these filters, your Pineapple will refuse connections from any other device, including other teams' victims and the phones of anybody passing by.
+==action: Open PineAP, then its Filtering page==.
+
+==action: Set the Client Filter to "Allow" mode== (an allow list: only the devices listed may connect), then ==action: add your victim's physical address== exactly as `netsh wlan show interfaces` showed it on the victim PC, six pairs of hexadecimal digits such as `a1:b2:c3:d4:e5:f6`. Add nothing else.
+
+==action: Set the SSID Filter to "Allow" mode and add `CSL-Cafe`== as the only entry.
+
+With these filters, your Pineapple will refuse connections from any other device, including other teams' victims and the phones of anybody passing by.
+
+> Warning: A filter left in "Deny" mode, or an allow list with the wrong address, means your Pineapple will accept other people's devices (or refuse your own victim). Check both filters with a teammate before you start Part 2.
+
+> Note: Use the address `netsh` reported whilst the victim was connected to `CSL-Cafe`, not one printed on the dongle. If Windows' "Random hardware addresses" setting is on, the PC uses a different address for each network.
 
 > Question: Submission Question 2. Include a screenshot of `CSL-Cafe` and your victim in Recon (blur or crop other networks). List what you were able to learn about the network and the victim without connecting to anything or transmitting a single frame. Why does reconnaissance like this raise few, if any, alarms?
 
@@ -165,7 +207,7 @@ The Pineapple has three radios: one hosts its management network and the open AP
 
 ==action: In PineAP, add `CSL-Cafe` to the SSID pool==.
 
-==action: Set PineAP to Advanced mode and enable "Beacon Response", "Broadcast SSID Pool" and "Allow Associations"==, then ==action: save the settings==. Your Pineapple is now broadcasting `CSL-Cafe` and will accept connections to it, but only from your victim, because of the filters you set earlier.
+==action: Set PineAP to Advanced mode and enable "Beacon Response", "Broadcast SSID Pool" and "Allow Associations"==. ==action: Check that "Capture SSIDs to Pool" is off and that the intervals are set to "Normal", not "Aggressive"== (see [Sharing the airwaves](#sharing-the-airwaves)), then ==action: save the settings==. Your Pineapple is now broadcasting `CSL-Cafe` and will accept connections to it, but only from your victim, because of the filters you set earlier.
 
 > Note: Menu names vary a little between Pineapple firmware versions. If you cannot find a setting, look at your tutor's Pineapple or ask.
 
