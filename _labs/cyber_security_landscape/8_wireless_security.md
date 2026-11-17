@@ -36,7 +36,21 @@ The lab is set in a fictional café, the **CSL Café**, which offers free open W
 
 ### How to work through this lab {#how-to-work-through-this-lab}
 
-Each team has one Wi-Fi Pineapple and one Wi-Fi dongle, and works on two neighbouring lab PCs. Your tutor will tell you whether all teams run the practical tasks at the same time or take turns with the hardware. If you are waiting for your turn, work on the background reading and Submission Question 1, which need no hardware.
+Each team has one Wi-Fi Pineapple and one Wi-Fi dongle, and works on two neighbouring lab PCs. The session lasts two hours, so the practical work is kept to four short parts, and the two written questions that need no hardware (Submission Questions 1 and 7) are completed after the session.
+
+Split your team into two pairs. The first pair operate the Pineapple for Parts 1 to 3 whilst the second pair play the victim; at the start of Part 4 you swap seats, so that everyone gets to run part of the attack. The victim stays connected when you swap, so there is nothing to set up again.
+
+| Time | Task |
+|---|---|
+| 0:00 | Introduction and your tutor's deauthentication demonstration |
+| 0:10 | Getting started and Part 1: surveying the network |
+| 0:25 | Part 2: the evil twin |
+| 0:45 | Part 3: what the network can see |
+| 1:10 | Swap seats, then Part 4: captive portal phishing |
+| 1:35 | Stretch task (or your tutor's demonstration of it) and clean up |
+| 1:50 | Debrief |
+
+> Note: If your team falls behind, skip the stretch task; it is not marked. Read the background section before the session if you can, since there is little time to read it during the practical work.
 
 Your team submits **one** document containing your answers to the numbered **Submission Questions** in this sheet, with screenshots as evidence where asked. Other questions in this sheet are for discussion and your own understanding, and are not submitted. The marking scheme is at the end of the sheet.
 
@@ -74,11 +88,11 @@ PMF protects a connection that already exists. It does nothing to prove to a dev
 
 What an attacker gains from being in the middle has changed too. Almost all web traffic is now encrypted with HTTPS, so passwords for mainstream websites can't simply be read off the wire, though you will find there is still plenty to see.
 
-> Question: Submission Question 1 (complete as a team; this can be done whilst waiting for the hardware). Complete a table with one row for each of the following: Karma, deauthentication, evil twin of an open network, evil twin of a network with a shared password, evil twin of a WPA2/WPA3-Enterprise network, and capturing and cracking a WPA2-Personal handshake. For each, give (a) how the attack works, in one or two sentences; (b) whether it is still effective against a typical modern network and device, and in what circumstances; and (c) the defence or defences that prevent it (for example PMF, WPA3-SAE, 802.1X with server certificate validation, strong passphrases, wireless intrusion detection). Reference your sources.
+> Question: Submission Question 1 (complete as a team after the session). Complete a table with one row for each of the following: Karma, deauthentication, evil twin of an open network, evil twin of a network with a shared password, evil twin of a WPA2/WPA3-Enterprise network, and capturing and cracking a WPA2-Personal handshake. For each, give (a) how the attack works, in one or two sentences; (b) whether it is still effective against a typical modern network and device, and in what circumstances; and (c) the defence or defences that prevent it (for example PMF, WPA3-SAE, 802.1X with server certificate validation, strong passphrases, wireless intrusion detection). Reference your sources.
 
 ## Getting started {#getting-started}
 
-Decide who in your team will start as the attackers and who will start as the victim, and sit at two neighbouring PCs. Keep the Pineapple on the desk next to the victim PC, as close as possible to the victim's Wi-Fi dongle; this is your strongest defence against accidentally attracting another team's victim, and theirs against attracting yours.
+Decide which pair will start as the attackers and which as the victim, and sit at two neighbouring PCs. Keep the Pineapple on the desk next to the victim PC, as close as possible to the victim's Wi-Fi dongle; this is your strongest defence against accidentally attracting another team's victim, and theirs against attracting yours.
 
 ### Victim PC {#victim-pc}
 
@@ -110,8 +124,6 @@ netsh wlan show interfaces
 ==action: Open a browser and go to the Pineapple's web interface== at `http://==edit: your Pineapple's IP address==:1471`. The address is on the label on the back of your Pineapple. ==action: Log in== with the details your tutor gives you.
 
 > Note: If the page does not load, disable the browser's proxy (or check that the Pineapple's address is in the proxy exceptions), and check that a new USB network adapter has appeared in `ipconfig`.
-
-==action: Spend a few minutes looking around the interface==: Dashboard, Campaigns, PineAP, Recon, Clients, Logging, Modules and Settings. You don't need to document every page; you will use the important ones below.
 
 ==action: Check that you can also log in to the Pineapple over SSH from a Command Prompt:==
 
@@ -177,13 +189,13 @@ Rather than knocking your victim off the network, you will simulate them walking
 
 ### Deauthentication {#deauthentication}
 
-Your tutor will demonstrate a deauthentication attack against one victim, or tell you whether you may try it yourselves against your own victim (only ever use "Deauthenticate Client" on your own victim; never "Deauthenticate All"). Note how the attack depends on the AP not using PMF.
+Your tutor demonstrated a deauthentication attack at the start of the session, so you do not need to run one. Look back at the PMF setting you recorded for `CSL-Cafe` in Part 1: the attack only works because the café's AP does not use PMF. Never use "Deauthenticate All" in this lab.
 
 > Question: Submission Question 3. Explain, in your own words, why your victim's PC joined your evil twin without asking. Then explain what would have prevented the attack if the café had used (a) WPA2-Personal with the password printed on the menu, (b) WPA3-Personal with the same printed password, (c) WPA2-Personal with PMF enabled, and (d) WPA2-Enterprise with 802.1X, with clients configured to check the server certificate. Be precise: which of these stop an evil twin, which only stop deauthentication, and which stop neither?
 
 ## Part 3: What can the network see? {#metadata}
 
-You are now in the middle: every packet your victim sends passes through your Pineapple. In this part you will capture that traffic and look at it in Wireshark. Your victim will browse the Health, Jobs and Bank sites, all of which use HTTPS.
+You are now in the middle: every packet your victim sends passes through your Pineapple. In this part you capture that traffic once and look at it in two ways: what you can still learn from traffic encrypted with HTTPS, and what you can read from traffic that is not encrypted at all.
 
 ==VM: On the attacker PC==
 
@@ -199,9 +211,11 @@ Enter the Pineapple's password when prompted. Wireshark should open and start sh
 
 ==VM: On the victim PC==
 
-==action: Browse the Health, Jobs and Bank sites from the favourites bar==. Click around a few pages on each.
+==action: Browse the Health, Jobs and Bank sites from the favourites bar==, clicking a few pages on each. ==action: Then open the Intranet site and log in with a made-up username and password==, and note what you typed. The intranet is the café's old staff system; like many older internal systems, embedded devices and IoT devices, it still uses plain HTTP.
 
 ==VM: On the attacker PC==
+
+### Encrypted traffic {#encrypted-traffic}
 
 ==action: In Wireshark, apply the display filter `dns`==. Each DNS query is a device asking "what is the address of this name?", and these are sent unencrypted.
 
@@ -211,23 +225,15 @@ Enter the Pineapple's password when prompted. Wireshark should open and start sh
 
 > Note: You will also see traffic that the victim did not knowingly create: Windows checking for updates, telemetry, time synchronisation and connectivity checks. A real device is far noisier than its user realises, and all of this is visible too.
 
-> Question: Submission Question 4. Include a screenshot showing the sites your victim visited, as revealed by DNS and SNI. Which parts of the victim's browsing could you see, and which could you not? Explain why HTTPS hides some of it but not the rest. Name and briefly explain technologies that would hide what you could see (consider DNS over HTTPS, Encrypted Client Hello and VPNs). Why might a list of sites visited be sensitive on its own, even without the content?
+### Unencrypted traffic {#unencrypted-traffic}
 
-## Part 4: Reading unencrypted traffic {#plain-http}
+==action: Apply the filter `http.request.method == "POST"`==, then ==action: right-click the request and choose Follow, then HTTP Stream==.
 
-Not everything uses HTTPS. Older internal systems, embedded devices, IoT devices and some apps still send data in plain text. The café's staff intranet is one of these.
+> Question: Submission Question 4. Include a screenshot showing the sites your victim visited, as revealed by DNS and SNI, and a screenshot of the captured intranet login (it will show your victim's made-up credentials). Which parts of the victim's browsing could you see, and which could you not? Explain why HTTPS hides some of it but not the rest, and name technologies that would hide the rest (consider DNS over HTTPS, Encrypted Client Hello and VPNs). What did the victim's browser display to warn them about the intranet login, and would a typical user notice it?
 
-==VM: On the victim PC==
+## Part 4: Captive portal phishing {#captive-portal}
 
-==action: Open the Intranet site from the favourites bar and log in with a made-up username and password==. Make a note of what you typed.
-
-==VM: On the attacker PC==
-
-==action: In Wireshark, apply the filter `http.request.method == "POST"`==, ==action: right-click the request and choose Follow, then HTTP Stream==.
-
-> Question: Submission Question 5. Include a screenshot of the captured login (it will show your victim's made-up credentials). Look at the address bar on the victim PC: what did the browser display to warn the user, and is it likely that a typical user would notice it? Apart from websites, give two examples of systems that might still send credentials or sensitive data unencrypted on a real network.
-
-## Part 5: Captive portal phishing {#captive-portal}
+> Action: Swap seats now. The second pair take over the attacker PC, and the first pair become the victim. Leave the victim connected to the Pineapple and the capture running.
 
 When you join public Wi-Fi in a hotel or café, you are often shown a sign-in page, known as a **captive portal**, before you can use the internet. Users are used to typing details into these pages, and there is no reliable way for them to tell a genuine portal from a fake one. Because the attacker controls the network, they control the portal. HTTPS does not help, because the user is typing their details into the attacker's own page.
 
@@ -245,11 +251,11 @@ Your Pineapple has the **Evil Portal** module installed, with a CSL Café portal
 
 ==action: Find the captured credentials in Evil Portal's log==, then ==action: stop Evil Portal==.
 
-> Question: Submission Question 6. Include a screenshot of your portal and of the captured credentials. Why does captive portal phishing still work when almost all websites use HTTPS? Would WPA3 or PMF on the café's own network have prevented it? What advice would you give a member of the public about captive portals?
+> Question: Submission Question 5. Include a screenshot of your portal and of the captured credentials. Why does captive portal phishing still work when almost all websites use HTTPS? Would WPA3 or PMF on the café's own network have prevented it? What advice would you give a member of the public about captive portals?
 
 ## Stretch task: HTTPS downgrade and HSTS {#hsts}
 
-This task is optional. Attempt it if you have time with the hardware.
+This task is optional and is not marked. Attempt it if you have time left after Part 4; otherwise your tutor may demonstrate it at the end of the session.
 
 Many websites still accept a first connection over plain HTTP and then redirect the browser to HTTPS. An attacker in the middle can intercept that first HTTP request and keep the victim on HTTP, serving their own copy of the site. This is known as an **HTTPS downgrade** or **SSL stripping** attack. Websites defend against it with **HTTP Strict Transport Security** (HSTS): a response header telling the browser "only ever contact me over HTTPS", which the browser remembers. Once a browser has seen it, the browser refuses to use HTTP for that site and refuses to let the user click past a certificate error.
 
@@ -281,17 +287,13 @@ uci commit dhcp
 /etc/init.d/dnsmasq restart
 ```
 
-> Question: Submission Question 7 (stretch, optional). What did the victim see when visiting the Shop, and when visiting the Bank? Explain why the attack worked against one site and not the other. What would the Bank's protection not have covered if the victim had never visited it before, and how does the HSTS preload list address this?
-
-## Swap roles {#swap-roles}
-
-Swap attacker and victim roles, and repeat Parts 2 to 5 so that everyone in the team has operated the Pineapple. Use different made-up credentials each time.
+> Question: Submission Question 6 (stretch, optional). What did the victim see when visiting the Shop, and when visiting the Bank? Explain why the attack worked against one site and not the other. What would the Bank's protection not have covered if the victim had never visited it before, and how does the HSTS preload list address this?
 
 ## Ethics and scope {#ethics-and-scope}
 
 The techniques in this lab are used in authorised wireless penetration tests and red team engagements, where the tester has written permission from the organisation and a defined scope. Even then, other people use the same airspace: customers, employees and neighbouring organisations.
 
-> Question: Submission Question 8. Imagine you have been hired to assess the guest Wi-Fi of a real café chain or a university. Drawing on this lab, describe (a) the legal and ethical requirements you would need in place before starting, and (b) the steps you would take to avoid affecting, or collecting data from, people who are not in scope. Refer to the measures you used in this lab (filters, the choice of network name, avoiding deauthentication) and to the National Cyber Security Centre's guidance on penetration testing. Maximum 300 words.
+> Question: Submission Question 7 (complete as a team after the session). Imagine you have been hired to assess the guest Wi-Fi of a real café chain or a university. Drawing on this lab, describe (a) the legal and ethical requirements you would need in place before starting, and (b) the steps you would take to avoid affecting, or collecting data from, people who are not in scope. Refer to the measures you used in this lab (filters, the choice of network name, avoiding deauthentication) and to the National Cyber Security Centre's guidance on penetration testing. Maximum 300 words.
 
 ## Clean up {#clean-up}
 
@@ -322,13 +324,13 @@ At this point you have:
 
 ## Submission and marking {#submission}
 
-Submit one document per team containing your answers to Submission Questions 1 to 8 (Question 7 is optional), with the screenshots requested, and the names of everyone in your team. If you are unable to work in a team, you may complete the worksheet individually. Submit through MyBeckett by the deadline shown there.
+Submit one document per team containing your answers to Submission Questions 1 to 7 (Question 6 is optional), with the screenshots requested, and the names of everyone in your team. If you are unable to work in a team, you may complete the worksheet individually. Submit through MyBeckett by the deadline shown there.
 
 | Section | Weighting |
 |---|---|
 | Submission Question 1: how wireless attacks and defences have changed, with references | 25% |
-| Submission Questions 2 to 6: evidence from the practical tasks and accuracy of explanations | 50% |
-| Submission Question 8: legal and ethical considerations | 15% |
+| Submission Questions 2 to 5: evidence from the practical tasks and accuracy of explanations | 50% |
+| Submission Question 7: legal and ethical considerations | 15% |
 | Clarity of communication and use of appropriate references throughout | 10% |
 
-Submission Question 7 is not marked separately, but a good answer can make up for marks lost elsewhere in Questions 2 to 6.
+Submission Question 6 is not marked separately, but a good answer can make up for marks lost elsewhere in Questions 2 to 5.
