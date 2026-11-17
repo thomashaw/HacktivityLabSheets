@@ -183,7 +183,21 @@ Rather than knocking your victim off the network, you will simulate them walking
 
 ==action: Open the Clients page==. Your victim should appear as connected to your Pineapple.
 
-> Note: If the victim reconnected to the real router instead, check the PineAP settings and filters, move the Pineapple closer to the dongle, and turn the victim's Wi-Fi off and on again.
+> Note: If the victim reconnected to the real router instead, check the PineAP settings and filters, move the Pineapple right next to the dongle, and turn the victim's Wi-Fi off and on again. Give it two or three tries.
+
+### If your victim will not join the evil twin {#backup-network}
+
+With four Pineapples and the university's own Wi-Fi in one room, the 2.4 GHz band gets crowded, and your victim may keep choosing the real access point. That is a realistic outcome (attackers in busy places have the same problem), and your tutor will tell you if your team should switch to the **backup network** so that you can still complete Parts 3 and 4.
+
+==VM: On the attacker PC==
+
+==action: Open Settings, then Networking, and change the Pineapple's Open AP name to `CSL-Cafe-Team==edit: your team number==`==, then ==action: save==. Leave PineAP running.
+
+==VM: On the victim PC==
+
+==action: Connect to `CSL-Cafe-Team==edit: your team number==` by choosing it from the network list==, then ==action: run `ipconfig`== to check that you have a Pineapple address rather than a `192.168.75.x` one.
+
+The attack from here on is the same, because your victim's traffic now passes through the Pineapple. The only difference is that your victim chose the network instead of joining it automatically; answer Submission Question 3 about the automatic join you saw your tutor demonstrate, or about what would have happened with less interference.
 
 > Question: Discussion: from the victim's side, what changed when they connected to your evil twin? Compare the IP address and the gateway shown by `ipconfig` with those from earlier, and the BSSID shown by `netsh wlan show interfaces`. Would a typical customer notice either?
 
@@ -208,6 +222,8 @@ ssh root@==edit: your Pineapple's IP address== "tcpdump -i any -U -w - not port 
 Enter the Pineapple's password when prompted. Wireshark should open and start showing packets.
 
 > Note: If the live capture does not work, capture to a file instead: run `ssh root@==edit: your Pineapple's IP address== "tcpdump -i any -w /tmp/capture.pcap not port 22"`, let the victim browse, press Ctrl+C, then copy the file with `scp root@==edit: your Pineapple's IP address==:/tmp/capture.pcap .` and open `capture.pcap` in Wireshark.
+
+> Note: If your team could not get a victim connected at all, your tutor will tell you to use the **recorded capture** instead: ==action: open `C:\csl-lab\csl-cafe-capture.pcapng` in Wireshark== and work through the rest of this part on that file. It was recorded on this network by a victim doing exactly what is described below, so every filter in this part will work on it.
 
 ==VM: On the victim PC==
 
@@ -234,6 +250,8 @@ Enter the Pineapple's password when prompted. Wireshark should open and start sh
 ## Part 4: Captive portal phishing {#captive-portal}
 
 > Action: Swap seats now. The second pair take over the attacker PC, and the first pair become the victim. Leave the victim connected to the Pineapple and the capture running.
+
+> Note: If your team is using the recorded capture because no victim could connect, your tutor will run this part on the projector. Take your screenshots for Submission Question 5 from the demonstration and answer the question as normal.
 
 When you join public Wi-Fi in a hotel or café, you are often shown a sign-in page, known as a **captive portal**, before you can use the internet. Users are used to typing details into these pages, and there is no reliable way for them to tell a genuine portal from a fake one. Because the attacker controls the network, they control the portal. HTTPS does not help, because the user is typing their details into the attacker's own page.
 
