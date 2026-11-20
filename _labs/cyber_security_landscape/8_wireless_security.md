@@ -93,7 +93,7 @@ The CSL Café network has been set up for you as follows:
 | Item | Details |
 |---|---|
 | Café Wi-Fi network (SSID) | `CSL-Cafe`, open (no password), 2.4 GHz only |
-| Café router | `192.168.75.1`, hands out addresses in `192.168.75.0/24` |
+| Café router | `192.168.75.1` or `192.168.75.249`, depending on the room (it is on the router's sticker); hands out addresses in `192.168.75.0/24` |
 | Café web server and DNS server | `192.168.75.10` (your tutor's PC) |
 | Websites on the café network | `intranet.csl.internal`, `shop.csl.internal`, `bank.csl.internal`, `health.csl.internal`, `jobs.csl.internal` |
 | "Attacker" web server (stretch task only) | `192.168.75.11` (also your tutor's PC) |
@@ -143,9 +143,9 @@ netsh wlan show interfaces
 
 > Note: `ipconfig` should show an address in `192.168.75.0/24` for the Wi-Fi adapter. In the output of `netsh wlan show interfaces`, note the **Physical address** (the MAC address your dongle is using on this network; Windows may randomise it per network) and the **BSSID** of the AP you are connected to. Give the physical address to your attackers.
 
-==action: Open Microsoft Edge and visit each site in the favourites bar== (Intranet, Shop, Bank, Health and Jobs) to check that the café network is working. Visiting the Bank site now matters for the stretch task later.
+==action: Open your browser (Chrome or Edge) and visit each site in the CSL Cafe folder on the bookmarks bar== (Edge calls it the favourites bar): Intranet, Shop, Bank, Health and Jobs, to check that the café network is working. Visiting the Bank site now matters for the stretch task later.
 
-> Note: If the sites do not load, check that the cable is unplugged and that you are connected to `CSL-Cafe`. If Edge tries to use the university proxy, ask your tutor.
+> Note: If the sites do not load, check that the cable is unplugged and that you are connected to `CSL-Cafe`. If your browser has no CSL Cafe folder, use Chrome. If the browser tries to use the university proxy, ask your tutor.
 
 ### Attacker PC {#attacker-pc}
 
@@ -269,7 +269,7 @@ Enter the Pineapple's password when prompted. Wireshark should open and start sh
 
 ==VM: On the victim PC==
 
-==action: Browse the Health, Jobs and Bank sites from the favourites bar==, clicking a few pages on each. ==action: Then open the Intranet site and log in with a made-up username and password==, and note what you typed. The intranet is the café's old staff system; like many older internal systems, embedded devices and IoT devices, it still uses plain HTTP.
+==action: Browse the Health, Jobs and Bank sites from the CSL Cafe bookmarks==, clicking a few pages on each. ==action: Then open the Intranet site and log in with a made-up username and password==, and note what you typed. The intranet is the café's old staff system; like many older internal systems, embedded devices and IoT devices, it still uses plain HTTP.
 
 ==VM: On the attacker PC==
 
@@ -332,7 +332,7 @@ uci commit dhcp
 
 ==VM: On the victim PC==
 
-==action: Close Edge, then run `ipconfig /flushdns` in a Command Prompt==, so that the PC forgets the addresses it looked up earlier. ==action: Open Edge and click the Shop favourite==, then ==action: log in with made-up credentials==. ==action: Next, click the Bank favourite==.
+==action: Close every window of your browser, so that it has fully exited, then run `ipconfig /flushdns` in a Command Prompt==, so that the PC forgets the addresses it looked up earlier. ==action: Open the same browser again and click the Shop bookmark==, then ==action: log in with made-up credentials==. ==action: Next, click the Bank bookmark==.
 
 ==VM: On the attacker PC==
 
